@@ -1,0 +1,17 @@
+# MATLAB
+*.asv
+*.autosave
+*.m~
+*.mex*
+slprj/
+codegen/
+*.slxc
+.mlx-cache/
+
+# Results (keep folder, not big outputs)
+results/*
+!results/.gitkeep
+
+# OS
+.DS_Store
+Thumbs.db
