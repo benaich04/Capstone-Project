@@ -1,0 +1,39 @@
+--- /mnt/data/capstone_integration_R2026a/original/blk4_localize.m	2026-11-03 09:44:02.308973563 +0000
++++ /mnt/data/capstone_integration_R2026a/blk4_localize.m	2026-11-03 09:52:04.893023534 +0000
+@@ -182,7 +182,8 @@
+ info4 = struct('converged', fit.conv, 'iterations', fit.iter, 'cost', fit.cost, ...
+                'chi2Pass', chi2Pass, 'chi2Thresh', chi2Thresh, 'ambiguous', ambiguous, ...
+                'rejectedRx', rejected, 'nUsed', numel(used), 'method', opt.solver, ...
+-               'start', fit.start, 'Rregularized', Rreg, 'warnings', {warns});
++               'start', fit.start, 'Rregularized', Rreg, ...
++               'crlbValid', ~badGeom, 'warnings', {warns});
+ end
+ 
+ % =========================================================================
+@@ -295,7 +296,12 @@
+         end
+         lambda = lambda * 4;
+     end
+-    if ~accepted || norm(step) < opt.tol || cost < 1e-24
++    if ~accepted
++        % Stagnation is not proof of convergence: preserve a failure flag.
++        conv = norm(g,Inf) <= opt.tol*(1 + norm(J,'fro')*norm(r));
++        return;
++    end
++    if norm(step) < opt.tol || cost < 1e-24
+         conv = true;  return;
+     end
+ end
+@@ -316,7 +322,11 @@
+         if cnew < cost, accepted = true; break; end
+         a = a / 2;
+     end
+-    if ~accepted, conv = true; return; end
++    if ~accepted
++        % A failed line search is not automatically converged.
++        conv = norm(J.'*r,Inf) <= opt.tol*(1 + norm(J,'fro')*norm(r));
++        return;
++    end
+     P = P + a*step;  r = rnew;  cost = cnew;
+     if norm(a*step) < opt.tol, conv = true; return; end
+ end
